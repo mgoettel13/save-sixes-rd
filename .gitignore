@@ -10,4 +10,4 @@ build/
 .DS_Store
 Thumbs.db
 # Squarespace emits many responsive-size duplicates during asset capture.
-public/source-assets/[0-9][0-9]-*
+public/source-assets/[0-9]*-*
