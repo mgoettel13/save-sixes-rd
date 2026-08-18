@@ -11,3 +11,6 @@ build/
 Thumbs.db
 # Squarespace emits many responsive-size duplicates during asset capture.
 public/source-assets/[0-9]*-*
+__pycache__/
+*.py[cod]
+backend/.env
