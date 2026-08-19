@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-production"
     jwt_expire_minutes: int = 60
     admin_email: EmailStr
+    admin_setup_token: str | None = None
     cors_origins: str = "http://localhost:4173"
 
     email_provider: str = "plunk"
@@ -29,4 +30,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-

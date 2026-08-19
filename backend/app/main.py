@@ -11,8 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .db import Base, engine, get_db
 from .models import AdminUser, Post
-from .schemas import HealthResponse, LoginRequest, PostCreate, PostResponse, TokenResponse
-from .security import create_access_token, verify_password
+from .schemas import AdminSetupRequest, HealthResponse, LoginRequest, PostCreate, PostResponse, TokenResponse
+from .security import create_access_token, hash_password, verify_password
+from .seed import INITIAL_POSTS
 
 settings = get_settings()
 bearer = HTTPBearer(auto_error=False)
@@ -48,6 +49,23 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     if user is None or not user.is_active or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
     return {"access_token": create_access_token(str(user.id))}
+
+
+@app.post("/auth/setup", response_model=TokenResponse, status_code=201)
+async def setup_admin(payload: AdminSetupRequest, db: AsyncSession = Depends(get_db)):
+    if not settings.admin_setup_token or payload.setup_token != settings.admin_setup_token:
+        raise HTTPException(status_code=404, detail="Setup unavailable")
+    existing = await db.scalar(select(AdminUser).limit(1))
+    if existing is not None:
+        raise HTTPException(status_code=409, detail="Admin setup has already been completed")
+    admin = AdminUser(email=str(settings.admin_email).lower(), password_hash=hash_password(payload.password))
+    db.add(admin)
+    await db.flush()
+    for item in INITIAL_POSTS:
+        post_data = {key: value for key, value in item.items() if key != "date"}
+        db.add(Post(**post_data, status="published", published_at=datetime.fromisoformat(f"{item['date']}T12:00:00+00:00"), author_id=admin.id))
+    await db.commit()
+    return {"access_token": create_access_token(str(admin.id))}
 
 
 async def require_admin(
@@ -91,4 +109,3 @@ async def create_post(
     await db.commit()
     await db.refresh(post)
     return post
-

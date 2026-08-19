@@ -13,6 +13,11 @@ class LoginRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
 
 
+class AdminSetupRequest(BaseModel):
+    setup_token: str = Field(min_length=16, max_length=256)
+    password: str = Field(min_length=8, max_length=128)
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -34,4 +39,3 @@ class PostResponse(PostCreate):
     published_at: datetime | None
     created_at: datetime
     updated_at: datetime
-
