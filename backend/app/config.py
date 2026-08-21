@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 60
     admin_email: EmailStr
     admin_setup_token: str | None = None
-    cors_origins: str = "http://localhost:4173"
+    cors_origins: str = "http://localhost:4173,https://save-sixes-rd-website-production.up.railway.app"
 
     email_provider: str = "plunk"
     plunk_api_base_url: str = "https://next-api.useplunk.com"
