@@ -39,3 +39,12 @@ class PostResponse(PostCreate):
     published_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+
+class PostUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=3, max_length=200)
+    slug: str | None = Field(default=None, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=220)
+    excerpt: str | None = Field(default=None, min_length=1, max_length=500)
+    content: str | None = Field(default=None, min_length=1)
+    image_url: str | None = None
+    status: str | None = Field(default=None, pattern="^(draft|published)$")

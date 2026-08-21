@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .db import Base, engine, get_db
 from .models import AdminUser, Post
-from .schemas import AdminSetupRequest, HealthResponse, LoginRequest, PostCreate, PostResponse, TokenResponse
+from .schemas import AdminSetupRequest, HealthResponse, LoginRequest, PostCreate, PostResponse, PostUpdate, TokenResponse
 from .security import create_access_token, hash_password, verify_password
 from .seed import INITIAL_POSTS
 
@@ -105,6 +105,12 @@ async def list_published_posts(db: AsyncSession = Depends(get_db)):
     return list(result)
 
 
+@app.get("/admin/posts", response_model=list[PostResponse])
+async def list_all_posts(_: AdminUser = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    result = await db.scalars(select(Post).order_by(Post.updated_at.desc(), Post.created_at.desc()))
+    return list(result)
+
+
 @app.post("/admin/posts", response_model=PostResponse, status_code=201)
 async def create_post(
     payload: PostCreate,
@@ -121,3 +127,38 @@ async def create_post(
     await db.commit()
     await db.refresh(post)
     return post
+
+
+@app.patch("/admin/posts/{post_id}", response_model=PostResponse)
+async def update_post(
+    post_id: int,
+    payload: PostUpdate,
+    _: AdminUser = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    post = await db.get(Post, post_id)
+    if post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    values = payload.model_dump(exclude_unset=True)
+    if "slug" in values:
+        duplicate = await db.scalar(select(Post).where(Post.slug == values["slug"], Post.id != post_id))
+        if duplicate:
+            raise HTTPException(status_code=409, detail="A post with this slug already exists")
+    for key, value in values.items():
+        setattr(post, key, value)
+    if values.get("status") == "published" and post.published_at is None:
+        post.published_at = datetime.now(timezone.utc)
+    if values.get("status") == "draft":
+        post.published_at = None
+    await db.commit()
+    await db.refresh(post)
+    return post
+
+
+@app.delete("/admin/posts/{post_id}", status_code=204)
+async def delete_post(post_id: int, _: AdminUser = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    post = await db.get(Post, post_id)
+    if post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    await db.delete(post)
+    await db.commit()
