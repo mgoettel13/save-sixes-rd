@@ -68,6 +68,18 @@ async def setup_admin(payload: AdminSetupRequest, db: AsyncSession = Depends(get
     return {"access_token": create_access_token(str(admin.id))}
 
 
+@app.post("/auth/reset-password", response_model=TokenResponse)
+async def reset_admin_password(payload: AdminSetupRequest, db: AsyncSession = Depends(get_db)):
+    if not settings.admin_setup_token or payload.setup_token != settings.admin_setup_token:
+        raise HTTPException(status_code=404, detail="Reset unavailable")
+    admin = await db.scalar(select(AdminUser).where(AdminUser.email == str(settings.admin_email).lower()))
+    if admin is None:
+        raise HTTPException(status_code=404, detail="Admin account not found")
+    admin.password_hash = hash_password(payload.password)
+    await db.commit()
+    return {"access_token": create_access_token(str(admin.id))}
+
+
 async def require_admin(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
     db: AsyncSession = Depends(get_db),
