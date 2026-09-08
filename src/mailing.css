@@ -1,5 +1,5 @@
 .admin-navigation { display: flex; gap: 28px; margin: 8px 0 32px; padding-bottom: 18px; border-bottom: 1px solid #ddd; }
-.admin-navigation a { font-weight: 650; color: #f4f1ea; text-decoration: none; }
+.admin-navigation a { font-weight: 650; color: var(--admin-link); text-decoration: none; }
 .admin-navigation a:hover { text-decoration: underline; }
 .mailing-actions { display: flex; flex-wrap: wrap; gap: 20px; }
 .mailing-notice { background: #fff5df; color: #293c2e; border-left: 3px solid #bc8724; padding: 18px 24px; margin: 24px 0; }
@@ -9,7 +9,7 @@
 .mailing-filters input, .mailing-filters select { background: white; color: #252c28; border: 1px solid #b8c0b9; border-radius: 3px; padding: 13px 12px; font: inherit; min-width: 0; width: 100%; }
 .mailing-table-wrap { overflow-x: auto; }
 .mailing-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-.mailing-table th { color: #e0ddcd; font-size: 12px; letter-spacing: .03em; }
+.mailing-table th { color: var(--admin-muted); font-size: 12px; letter-spacing: .03em; }
 .mailing-table th, .mailing-table td { padding: 18px 12px; border-bottom: 1px solid #e2e5df; }
 .mailing-table td:first-child { overflow-wrap: anywhere; }
 .mailing-table td .admin-status { white-space: nowrap; }
@@ -24,10 +24,10 @@
 .newsletter-error { width: 100%; flex-basis: 100%; font-size: 14px; margin: 10px 0; }
 .newsletter-form button:disabled { opacity: .65; cursor: wait; }
 @media (max-width: 700px) { .mailing-filters { align-items: stretch; flex-direction: column; } .mailing-table th, .mailing-table td { padding: 14px 8px; } }
-.mailing-list-options { border: 1px solid #68796c; padding: 20px; margin: 20px 0; }
+.mailing-list-options { border: 1px solid var(--admin-line); padding: 20px; margin: 20px 0; }
 .mailing-list-options legend { padding: 0 10px; font-weight: bold; }
 .mailing-list-options .mailing-checkbox { margin: 12px 0; }
-.campaign-preview { margin-top: 40px; border-top: 1px solid #68796c; padding-top: 24px; }
+.campaign-preview { margin-top: 40px; border-top: 1px solid var(--admin-line); padding-top: 24px; }
 .campaign-preview iframe { width: 100%; min-height: 620px; border: 0; background: #fff; }
 .subscription-action { max-width: 800px; padding-top: 80px; padding-bottom: 80px; }
 .newsletter-form small { flex-basis: 100%; line-height: 1.6; }
