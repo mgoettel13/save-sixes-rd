@@ -1,19 +1,26 @@
 from contextlib import asynccontextmanager
+import asyncio
+from contextlib import suppress
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
 from .config import get_settings
 from .db import Base, engine, get_db
-from .models import AdminUser, Post
+from .models import AdminUser, Post, EmailCampaign
+from .campaigns import campaign_router, campaign_worker
 from .schemas import AdminSetupRequest, HealthResponse, LoginRequest, PostCreate, PostResponse, PostUpdate, TokenResponse
 from .security import create_access_token, hash_password, verify_password
 from .seed import INITIAL_POSTS
+from .mailing import mailing_router
+from .plunk import PlunkError
 
 settings = get_settings()
 bearer = HTTPBearer(auto_error=False)
@@ -23,7 +30,12 @@ bearer = HTTPBearer(auto_error=False)
 async def lifespan(_: FastAPI):
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
+    worker = asyncio.create_task(campaign_worker()) if settings.campaign_worker_enabled else None
     yield
+    if worker:
+        worker.cancel()
+        with suppress(asyncio.CancelledError):
+            await worker
     await engine.dispose()
 
 
@@ -32,7 +44,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
 
@@ -160,5 +172,21 @@ async def delete_post(post_id: int, _: AdminUser = Depends(require_admin), db: A
     post = await db.get(Post, post_id)
     if post is None:
         raise HTTPException(status_code=404, detail="Post not found")
+    if await db.scalar(select(EmailCampaign.id).where(EmailCampaign.post_id == post_id).limit(1)):
+        raise HTTPException(409, "This post has an email history. Keep it or change it to a draft instead of deleting it.")
     await db.delete(post)
     await db.commit()
+
+
+@app.exception_handler(PlunkError)
+async def plunk_error_handler(request, exc: PlunkError):
+    return JSONResponse(status_code=exc.status_code, content={"detail": str(exc)})
+
+
+@app.exception_handler(IntegrityError)
+async def concurrent_change_handler(request, exc: IntegrityError):
+    return JSONResponse(status_code=409, content={"detail": "A conflicting change was saved. Refresh and check the record before trying again."})
+
+
+app.include_router(mailing_router(require_admin))
+app.include_router(campaign_router(require_admin))

@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     plunk_secret_key: str | None = None
     plunk_from_address: str | None = None
     plunk_from_name: str = "Save Sixes Rd"
+    plunk_reply_to: str = "info@savesixesrd.org"
+    site_url: str = "https://save-sixes-rd-website-production.up.railway.app"
+    api_public_url: str = "https://save-sixes-rd-api-production.up.railway.app"
+    newsletter_postal_address: str = "The Falls of Cherokee, Canton, GA 30114, USA"
+    newsletter_enabled: bool = False
+    campaign_worker_enabled: bool = False
 
     @property
     def cors_origin_list(self) -> list[str]:

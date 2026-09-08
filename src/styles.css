@@ -69,5 +69,32 @@ h1, h2, h3, p { margin-top: 0; } h1, h2, h3 { font-family: "Newsreader", Georgia
 .admin-layout { }
 @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; gap: 54px; } }
 .admin-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, .85fr); gap: 64px; margin-top: 46px; } .admin-form-heading,.admin-list-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; } .admin-list-heading { border-bottom: 1px solid rgba(244,241,234,.18); padding-bottom: 18px; } .admin-list-heading h2 { margin: 0; font-family: Newsreader, Georgia, serif; font-size: 42px; line-height: .95; } .admin-post-card { padding: 20px 0; border-bottom: 1px solid rgba(244,241,234,.18); } .admin-post-card h3 { margin: 6px 0 16px; font-size: 26px; line-height: 1; } .admin-status { display: inline-block; padding: 5px 8px; color: var(--green); background: var(--sand); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; } .admin-status.draft { color: var(--cream); background: rgba(244,241,234,.22); } .admin-post-actions { display: flex; flex-wrap: wrap; gap: 14px; } .admin-post-actions button { border: 0; padding: 0; color: var(--sand); background: transparent; cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; } .admin-post-actions button:hover { color: #fff; } .admin-post-actions button.danger { color: #ffb0a6; } .admin-form select { border: 1px solid rgba(244,241,234,.22); background: rgba(15,46,36,.55); color: var(--cream); padding: 14px 15px; font: inherit; font-size: 16px; }
+
+/* Editorial workspace: overview and writing are separate, calmer tasks. */
+.admin-workspace { width: min(100%, 1080px); }
+.admin-top-actions { display: flex; align-items: center; gap: 24px; }
+.admin-new-button { white-space: nowrap; }
+.admin-new-button span { font-size: 18px; line-height: 0; vertical-align: -1px; }
+.admin-summary { display: flex; justify-content: space-between; align-items: end; gap: 32px; padding: 34px 0 42px; border-bottom: 1px solid rgba(244,241,234,.18); }
+.admin-summary > p { max-width: 440px; margin: 0; color: rgba(244,241,234,.72); line-height: 1.6; }
+.admin-stats { display: flex; gap: 28px; color: rgba(244,241,234,.6); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
+.admin-stats strong { display: block; color: var(--sand); font: 600 34px/1 Newsreader, Georgia, serif; letter-spacing: -.03em; text-transform: none; }
+.admin-list-page { margin-top: 48px; }
+.admin-list-page .admin-list-heading { align-items: end; }
+.admin-post-card { display: flex; justify-content: space-between; align-items: end; gap: 32px; padding: 28px 0; }
+.admin-post-card > div:first-child { min-width: 0; }
+.admin-post-card h3 { max-width: 650px; margin: 8px 0 8px; font-family: Newsreader, Georgia, serif; font-size: clamp(27px, 3vw, 38px); line-height: .98; letter-spacing: -.025em; }
+.admin-post-card p:not(.post-date) { max-width: 620px; margin: 0; color: rgba(244,241,234,.64); line-height: 1.5; }
+.admin-post-actions { flex: 0 0 auto; align-items: center; }
+.admin-empty { padding: 72px 0 40px; max-width: 460px; }
+.admin-empty h3 { margin: 10px 0; font: 500 42px/.95 Newsreader, Georgia, serif; letter-spacing: -.035em; }
+.admin-empty p:not(.eyebrow) { color: rgba(244,241,234,.65); line-height: 1.6; }
+.admin-editor-page { max-width: 760px; margin-top: 46px; }
+.admin-editor-page label { gap: 10px; }
+.admin-editor-page input, .admin-editor-page textarea, .admin-editor-page select { background: rgba(15,46,36,.38); border-color: rgba(244,241,234,.28); }
+.admin-editor-page textarea { min-height: 120px; }
+.admin-editor-page textarea:nth-of-type(2) { min-height: 290px; }
+.admin-loading { margin-top: 54px; color: rgba(244,241,234,.68); }
+@media (max-width: 700px) { .admin-summary, .admin-post-card { display: block; } .admin-stats { margin-top: 26px; } .admin-post-actions { margin-top: 22px; } .admin-top-actions { align-items: flex-start; flex-direction: column; gap: 8px; } }
 @media (max-width: 560px) { .admin-shell { padding: 42px 20px 80px; } .admin-login { padding: 32px 24px; } .admin-topline { display: block; } .admin-topline .text-button { margin-top: 8px; } }
 @media (max-width: 540px) { .header-inner,.section-wrap,.value-strip,.newsletter-band { width: calc(100% - 32px); } .hero-copy { width: calc(100% - 32px); } .hero h1 { font-size: 54px; } .hero-subtitle { font-size: 16px; } .hero-actions { align-items: flex-start; flex-direction: column; gap: 20px; } .section-heading { align-items: flex-start; flex-direction: column; gap: 18px; } .post-row { grid-template-columns: 96px 1fr; gap: 14px; } .post-row img { width: 96px; height: 96px; } .post-row h3 { font-size: 21px; } .post-row p:not(.post-date) { display: none; } .newsletter-form { grid-template-columns: 1fr; } .newsletter-form button { min-height: 48px; } .library-row { grid-template-columns: 1fr 24px; gap: 8px; } .library-type { grid-column: 1 / -1; } .library-row strong { font-size: 21px; } .petition-card { padding: 32px 24px; } .footer-grid { grid-template-columns: 1fr; } .footer-bottom { flex-direction: column; gap: 8px; } }
