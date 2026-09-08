@@ -39,3 +39,15 @@ Run `python -m pytest tests -q` from `backend` and `npm run build` at repository
 Before migration, retain the source CSV and a destination backup outside Git. After migration, compare every normalized address, consent status, original name, source metadata and membership with the source, not only totals. Retain the private reconciliation report. Verify a signup/confirmation/unsubscribe round trip and a blog-email test through the approved mailbox. Migration is not permission to broadcast to the source audience.
 
 Provider references: [send API](https://docs.useplunk.com/api-reference/public-api/sendEmail), [API overview and idempotency](https://docs.useplunk.com/api-reference/overview).
+
+## Migration completed: 2026-09-08
+
+The source export was imported after the live signup, confirmation, test-email, queued-email and unsubscribe flows passed. All 170 source records matched the destination by normalized address, subscription state, names, source metadata and list membership. There were zero mismatches, duplicates, skips or failed imports. The destination preserves master (115 members), HOA_Meeting (44 members) and their six-person overlap. All four existing blog posts were preserved.
+
+The 156 source subscribers remain subscribed; the other 14 source contacts remain unsubscribed. One additional test address is retained, opted out, in Delivery checks. The completed one-recipient test campaign remains as delivery-history evidence. No imported subscriber received an email.
+
+The dedicated sender passed SPF, DKIM and DMARC in the approved Gmail inbox. Both a test preview and a queued blog email arrived; the delivered article and unsubscribe links were verified through the browser. PostgreSQL checks with an isolated temporary schema also verified simultaneous queue requests and concurrent workers without sending real emails.
+
+Private CSV backups and the per-record reconciliation report are stored outside Git. Squarespace remains live. Any contacts collected there after this export need a final incremental import before the domain cutover; there is no background synchronization.
+
+Validation: nine backend tests and the Vite production build pass. The legacy Sites packaging check expects dist/client and a .openai hosting configuration that this Railway project no longer has; its three worker-routing tests pass. That packaging check is not a Railway deployment check.

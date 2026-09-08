@@ -49,6 +49,14 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def private_response_cache_control(request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith(("/admin/", "/newsletter/", "/auth/")):
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @app.get("/health", response_model=HealthResponse)
 async def health(db: AsyncSession = Depends(get_db)):
     await db.execute(text("SELECT 1"))

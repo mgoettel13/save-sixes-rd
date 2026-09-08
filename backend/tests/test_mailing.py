@@ -76,6 +76,8 @@ def test_signup_confirmation_unsubscribe_old_link_and_limits(tmp_path):
             assert (await client.post('/newsletter/signup',json=signup)).status_code==202
             _,token,unsub=fake.confirmations[-1]
             async with factory() as db: assert (await db.scalar(select(Subscriber))).status=='pending'
+            exported = await client.get('/admin/mailing-list/export')
+            assert parse_import(ImportPreview(csv_text=exported.text))['rows'][0]['status'] == 'pending'
             assert (await client.get('/newsletter/confirm',params={'token':token})).status_code==405
             assert (await client.post('/newsletter/confirm',json={'token':token})).status_code==200
             assert (await client.post('/newsletter/unsubscribe',params={'token':unsub},content='List-Unsubscribe=One-Click')).status_code==200

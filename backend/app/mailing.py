@@ -51,10 +51,10 @@ class TokenRequest(BaseModel):
 async def list_ids_for(db, subscriber_id):
     return list(await db.scalars(select(ListMembership.list_id).where(ListMembership.subscriber_id == subscriber_id)))
 
-async def public_contact(db, contact):
+async def public_contact(db, contact, memberships=None):
     return {"id": contact.id, "email": contact.email, "first_name": contact.first_name, "last_name": contact.last_name,
         "status": contact.status, "subscribed": contact.status == "subscribed", "source": contact.source,
-        "created_at": contact.created_at, "list_ids": await list_ids_for(db, contact.id),
+        "created_at": contact.created_at, "list_ids": await list_ids_for(db, contact.id) if memberships is None else memberships,
         "source_details": contact.source_details, "consent": contact.consent}
 
 async def reserve_signup(db, kind, value, seconds, maximum):
@@ -235,7 +235,10 @@ def mailing_router(require_admin):
         if list_id: query = query.join(ListMembership).where(ListMembership.list_id == list_id)
         total = await db.scalar(select(func.count()).select_from(query.subquery()))
         rows = list(await db.scalars(query.where(Subscriber.id > cursor).order_by(Subscriber.id).limit(51)))
-        return {"contacts": [await public_contact(db, item) for item in rows[:50]], "total": total,
+        memberships = {}
+        for member in await db.scalars(select(ListMembership).where(ListMembership.subscriber_id.in_([item.id for item in rows[:50]]))):
+            memberships.setdefault(member.subscriber_id, []).append(member.list_id)
+        return {"contacts": [await public_contact(db, item, memberships.get(item.id, [])) for item in rows[:50]], "total": total,
                 "has_more": len(rows) > 50, "cursor": rows[49].id if len(rows) > 50 else None}
 
     @admin.get("/export")
@@ -244,10 +247,14 @@ def mailing_router(require_admin):
         writer = csv.writer(output)
         writer.writerow(["Email", "First Name", "Last Name", "Status", "Mailing Lists", "Source", "Created On", "Subscriber Since", "Subscriber Source", "Accepts Marketing"])
         names = {item.id: item.name for item in await db.scalars(select(MailingList))}
+        memberships = {}
+        for member in await db.scalars(select(ListMembership)):
+            memberships.setdefault(member.subscriber_id, []).append(member.list_id)
         for item in await db.scalars(select(Subscriber).order_by(Subscriber.id)):
             source = item.source_details or {}
-            cells = [item.email, item.first_name, item.last_name, item.status, ", ".join(names[k] for k in await list_ids_for(db, item.id)), item.source,
-                source.get("createdon") or str(item.created_at), source.get("subscribersince", ""), source.get("subscribersource", ""), str(item.status == "subscribed").lower()]
+            cells = [item.email, item.first_name, item.last_name, item.status, ", ".join(names[k] for k in memberships.get(item.id, [])), item.source,
+                source.get("createdon") or str(item.created_at), source.get("subscribersince", ""), source.get("subscribersource", ""),
+                "" if item.status == "pending" else str(item.status == "subscribed").lower()]
             writer.writerow(["'" + str(v) if str(v).lstrip().startswith(("=", "+", "-", "@")) else v for v in cells])
         return Response("\ufeff" + output.getvalue(), media_type="text/csv", headers={"Content-Disposition": 'attachment; filename="save-sixes-mailing-list.csv"', "Cache-Control": "no-store"})
 
