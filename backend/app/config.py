@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     newsletter_enabled: bool = False
     campaign_worker_enabled: bool = False
 
+    news_aggregator_base_url: str | None = None
+    news_aggregator_tenant_slug: str | None = None
+    news_aggregator_api_key: str | None = None
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

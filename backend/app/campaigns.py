@@ -7,16 +7,29 @@ import secrets
 from datetime import timedelta
 from html import escape
 from urllib.parse import quote
+from urllib.parse import urlsplit
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from markdown_it import MarkdownIt
 from .config import get_settings
 from .db import get_db, session_factory
 from .models import Post, Subscriber, MailingList, ListMembership, EmailCampaign, EmailDelivery
 from .mailing import now
 from .plunk import PlunkClient, PlunkError, get_plunk
+
+def _safe_markdown_link(value):
+    try:
+        parsed = urlsplit(value)
+        return parsed.scheme.lower() in ("https", "http") and bool(parsed.hostname) and not parsed.username and not parsed.password
+    except ValueError:
+        return False
+
+
+_email_markdown = MarkdownIt("commonmark", {"html": False, "breaks": True})
+_email_markdown.validateLink = _safe_markdown_link
 
 class CampaignEdit(BaseModel):
     post_id: int
@@ -44,7 +57,7 @@ def render_email(campaign, snapshot, unsubscribe_token=None, test=False):
     settings = get_settings()
     url = escape(f"{settings.site_url.rstrip('/')}/blog/{quote(snapshot['slug'], safe='')}", quote=True)
     def paragraphs(value):
-        return ''.join('<p style="white-space:pre-wrap">' + escape(p) + '</p>' for p in value.split('\n\n') if p.strip())
+        return _email_markdown.render(value)
     footer = '<p>This is a preview. No mailing-list audience was emailed.</p>' if test else ''
     if unsubscribe_token:
         unsub = escape(f"{settings.site_url.rstrip('/')}/newsletter/unsubscribe#token={quote(unsubscribe_token)}", quote=True)

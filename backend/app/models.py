@@ -42,6 +42,22 @@ class Post(Base):
     author_id: Mapped[int] = mapped_column(ForeignKey("admin_users.id"))
 
     author: Mapped[AdminUser] = relationship(back_populates="posts")
+    news_aggregator_import: Mapped["NewsAggregatorImport | None"] = relationship(
+        back_populates="post", cascade="all, delete-orphan", uselist=False
+    )
+
+
+class NewsAggregatorImport(Base):
+    __tablename__ = "news_aggregator_imports"
+    __table_args__ = (UniqueConstraint("source_origin", "tenant_slug", "article_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source_origin: Mapped[str] = mapped_column(String(300))
+    tenant_slug: Mapped[str] = mapped_column(String(120))
+    article_id: Mapped[str] = mapped_column(String(36))
+    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id"), unique=True)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    post: Mapped[Post] = relationship(back_populates="news_aggregator_import")
 
 
 class Subscriber(Base):

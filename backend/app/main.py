@@ -21,6 +21,7 @@ from .security import create_access_token, hash_password, verify_password
 from .seed import INITIAL_POSTS
 from .mailing import mailing_router
 from .plunk import PlunkError
+from .news_aggregator import news_aggregator_router
 
 settings = get_settings()
 bearer = HTTPBearer(auto_error=False)
@@ -198,3 +199,4 @@ async def concurrent_change_handler(request, exc: IntegrityError):
 
 app.include_router(mailing_router(require_admin))
 app.include_router(campaign_router(require_admin))
+app.include_router(news_aggregator_router(require_admin))
