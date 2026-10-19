@@ -25,7 +25,7 @@ def test_legacy_snapshot_has_shared_branding_and_styled_reading_column():
     tags = Elements(html).tags
     assert any(t == "table" and a.get("width") == "600" and "max-width:600px" in a.get("style", "") for t, a in tags)
     images = [a for t, a in tags if t == "img"]
-    assert [a["src"] for a in images] == ["https://example.org/source-assets/logo-primary.png", "https://example.org/source-assets/62-lakeAllatoona.jpg"]
+    assert [a["src"] for a in images] == ["https://example.org/source-assets/logo-primary.png", "https://example.org/source-assets/lake-allatoona.jpg"]
     assert all(a.get("alt") and a.get("width") for a in images)
     # Typography survives removal of outer wrappers by email clients.
     for tag in ("h1", "h2", "p", "li"):

@@ -52,7 +52,7 @@ def render_blog_email(campaign, snapshot, settings, unsubscribe_token=None, test
     home = escape(site + "/", quote=True)
     url = escape(f"{site}/blog/{quote(snapshot['slug'], safe='')}", quote=True)
     logo = escape(f"{site}/source-assets/logo-primary.png", quote=True)
-    photo = escape(f"{site}/source-assets/62-lakeAllatoona.jpg", quote=True)
+    photo = escape(f"{site}/source-assets/lake-allatoona.jpg", quote=True)
     title = escape(snapshot["title"])
     preheader = escape("Test preview — " if test else "") + escape(snapshot.get("excerpt") or snapshot["title"])
     small = "font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:20px;color:#64716a;"
