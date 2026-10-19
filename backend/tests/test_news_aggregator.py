@@ -220,4 +220,4 @@ def test_email_markdown_keeps_text_and_blocks_html_and_unsafe_links():
     assert "&lt;script&gt;" in output and "<script>" not in output
     assert 'href="javascript:' not in output
     assert 'href="data:' not in output and 'href="mailto:' not in output
-    assert '<a href="https://example.org/story">Read more</a>' in output
+    assert 'href="https://example.org/story"' in output and '>Read more</a>' in output

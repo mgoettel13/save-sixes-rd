@@ -5,31 +5,17 @@ import json
 import logging
 import secrets
 from datetime import timedelta
-from html import escape
-from urllib.parse import quote
-from urllib.parse import urlsplit
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from markdown_it import MarkdownIt
 from .config import get_settings
 from .db import get_db, session_factory
 from .models import Post, Subscriber, MailingList, ListMembership, EmailCampaign, EmailDelivery
 from .mailing import now
 from .plunk import PlunkClient, PlunkError, get_plunk
-
-def _safe_markdown_link(value):
-    try:
-        parsed = urlsplit(value)
-        return parsed.scheme.lower() in ("https", "http") and bool(parsed.hostname) and not parsed.username and not parsed.password
-    except ValueError:
-        return False
-
-
-_email_markdown = MarkdownIt("commonmark", {"html": False, "breaks": True})
-_email_markdown.validateLink = _safe_markdown_link
+from .email_template import render_blog_email
 
 class CampaignEdit(BaseModel):
     post_id: int
@@ -54,24 +40,7 @@ def snapshot_for(post):
     return {'title': post.title, 'slug': post.slug, 'content': post.content, 'excerpt': post.excerpt}
 
 def render_email(campaign, snapshot, unsubscribe_token=None, test=False):
-    settings = get_settings()
-    url = escape(f"{settings.site_url.rstrip('/')}/blog/{quote(snapshot['slug'], safe='')}", quote=True)
-    def paragraphs(value):
-        return _email_markdown.render(value)
-    footer = '<p>This is a preview. No mailing-list audience was emailed.</p>' if test else ''
-    if unsubscribe_token:
-        unsub = escape(f"{settings.site_url.rstrip('/')}/newsletter/unsubscribe#token={quote(unsubscribe_token)}", quote=True)
-        footer += f'<p><a href="{unsub}">Unsubscribe from Save Sixes Rd emails</a></p>'
-    elif not test:
-        footer += '<p>Each recipient receives their own unsubscribe link.</p>'
-    return ('<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#f5f3eb;color:#17392e">'
-        '<main style="max-width:620px;margin:32px auto;padding:28px;font:17px/1.65 Georgia,serif;background:white">'
-        '<p style="font:700 14px Arial,sans-serif;letter-spacing:2px">SAVE SIXES RD</p>'
-        + ('<p><strong>TEST EMAIL</strong></p>' if test else '')
-        + f"<h1>{escape(snapshot['title'])}</h1>" + paragraphs(campaign.introduction)
-        + paragraphs(snapshot['content']) + f'<p><a href="{url}">View original post →</a></p><hr>'
-        + '<footer style="font:13px/1.6 Arial,sans-serif">Save Sixes Rd<br>'
-        + escape(settings.newsletter_postal_address) + footer + '</footer></main></body></html>')
+    return render_blog_email(campaign, snapshot, get_settings(), unsubscribe_token, test)
 
 async def campaign_view(db, item):
     counts = dict((await db.execute(select(EmailDelivery.status, func.count()).where(EmailDelivery.campaign_id == item.id).group_by(EmailDelivery.status))).all())
