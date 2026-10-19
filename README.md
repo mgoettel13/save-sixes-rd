@@ -11,7 +11,7 @@ This repository starts with the content and visual discovery phase. The public S
 - Public campaign website
 - Blog and article publishing
 - Library for documents, analysis, and images
-- Petition and contact journeys
+- Contact information and community links
 - Newsletter signup with double opt-in
 - New-post email delivery
 - Protected content administration
